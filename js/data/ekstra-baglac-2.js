@@ -1,0 +1,88 @@
+/* Ekstra havuz 2. tur — con-contrast, con-cause, con-result, con-purpose, con-correlative, con-time (her başlık için 10 yeni soru) */
+EKSTRA.push(
+  /* ---------- con-contrast ---------- */
+  {id:"x2-con-contrast-01", sub:"con-contrast", from:["conj-01"], q:"The medicine is effective; it is, ----, far too expensive for general use.", o:["however","thus","hence","moreover","accordingly"], a:0, e:"İki cümle arasında zıtlık vardır: “however”. Diğerleri sonuç ya da ekleme bildirir."},
+  {id:"x2-con-contrast-02", sub:"con-contrast", from:["conj-02"], q:"---- most of his contemporaries, he never used artificial light in his photographs.", o:["Whereas","However","Unlike","Although","Despite that"], a:2, e:"“Unlike + isim” karşılaştırmalı zıtlık kurar; “Although / Whereas” cümle ister."},
+  {id:"x2-con-contrast-03", sub:"con-contrast", from:["conj-03"], q:"The winters here are mild; ----, summers can be extremely hot.", o:["for example","as a result","that is","on the other hand","in other words"], a:3, e:"Madalyonun öbür yüzü veriliyor: “on the other hand”."},
+  {id:"x2-con-contrast-04", sub:"con-contrast", from:["conj-04"], q:"---- he had all the necessary documents, his application was rejected.", o:["Even though","Despite","In spite of","However","Nonetheless"], a:0, e:"Yan cümle geldiği için bağlaç gerekir: “Even though”."},
+  {id:"x2-con-contrast-05", sub:"con-contrast", from:["conj-01"], q:"The first method is fast but unreliable; the second, ----, is slow but accurate.", o:["likewise","by contrast","in consequence","for this reason","in addition"], a:1, e:"İki yöntem karşılaştırılıyor; “by contrast” zıtlık kurar. “likewise” benzerlik bildirir."},
+  {id:"x2-con-contrast-06", sub:"con-contrast", from:["conj-02"], q:"The results were disappointing. ---- , the team decided to continue the project.", o:["Consequently","Thus","Hence","Nevertheless","Therefore"], a:3, e:"“Nevertheless” buna rağmen anlamı verir; diğerleri sonuç bildirir."},
+  {id:"x2-con-contrast-07", sub:"con-contrast", from:["conj-03"], q:"---- being much younger, she has published more papers than her supervisor.", o:["Although","Even though","However","Whereas","Despite"], a:4, e:"“Despite + V-ing” zıtlık kurar; diğerleri özne+yüklem ister."},
+  {id:"x2-con-contrast-08", sub:"con-contrast", from:["conj-04"], q:"Some regions have too much water, ---- others suffer from constant drought.", o:["hence","while","therefore","so","thus"], a:1, e:"“while” karşılaştırmalı zıtlık kurar."},
+  {id:"x2-con-contrast-09", sub:"con-contrast", from:["conj-01","conj-03"], q:"The theory explains the data well. ---- , it cannot predict future events.", o:["As though","As if","Even so","Even if","Even though"], a:2, e:"“Even so” yine de anlamında bağımsız bir cümleyi bağlar; “Even though” yan cümle ister."},
+  {id:"x2-con-contrast-10", sub:"con-contrast", from:["conj-02","conj-04"], q:"He claims to be an expert, ---- he has never published anything on the subject.", o:["hence","thereby","whereas","therefore","so that"], a:2, e:"İki bilgi arasında çelişki vardır; “whereas” zıtlık kurar."},
+
+  /* ---------- con-cause ---------- */
+  {id:"x2-con-cause-01", sub:"con-cause", from:["conj-05"], q:"---- the equipment had not been calibrated, the readings were useless.", o:["Despite","So that","Whereas","In order that","Since"], a:4, e:"Sebep yan cümlesi kurulmaktadır: “Since”."},
+  {id:"x2-con-cause-02", sub:"con-cause", from:["conj-06"], q:"The concert was cancelled ---- poor ticket sales.", o:["as","so","because of","because","since"], a:2, e:"İsim öbeği geldiği için “because of” gerekir."},
+  {id:"x2-con-cause-03", sub:"con-cause", from:["conj-07"], q:"He could not take part, ---- he was recovering from an operation.", o:["hence","for","so","therefore","thus"], a:1, e:"“for” virgülden sonra “çünkü” anlamında sebep bildirir."},
+  {id:"x2-con-cause-04", sub:"con-cause", from:["conj-05"], q:"---- that the sample was so small, the conclusions must be treated with caution.", o:["In view","Given","Because of","Due to","Owing to"], a:1, e:"“Given that + cümle” bir gerekçeyi öne sürer."},
+  {id:"x2-con-cause-05", sub:"con-cause", from:["conj-06"], q:"The town grew rapidly ---- its position on the trade route.", o:["thanks to","thanks","because","since","as"], a:0, e:"“thanks to + isim” olumlu sonucun nedenini bildirir."},
+  {id:"x2-con-cause-06", sub:"con-cause", from:["conj-07"], q:"---- the roads were blocked, supplies had to be delivered by helicopter.", o:["Thus","Therefore","Hence","As","So"], a:3, e:"“As” sebep yan cümlesi kurar; diğerleri sonuç bildirir."},
+  {id:"x2-con-cause-07", sub:"con-cause", from:["conj-05","conj-07"], q:"The species survived here ---- the absence of large predators.", o:["although","whereas","on account of","on account","because"], a:2, e:"“on account of + isim” sebep bildirir."},
+  {id:"x2-con-cause-08", sub:"con-cause", from:["conj-06"], q:"---- there is no written record, the date can only be estimated.", o:["Because of","In case","So that","Seeing that","Due to"], a:3, e:"“Seeing that + cümle” sebep bildirir; “Due to / Because of” isim ister."},
+  {id:"x2-con-cause-09", sub:"con-cause", from:["conj-05"], q:"---- the rising number of applications, a second committee was formed.", o:["Because","Since","In view of","In view","Given that"], a:2, e:"“In view of + isim” resmî bir gerekçe bildirir."},
+  {id:"x2-con-cause-10", sub:"con-cause", from:["conj-07"], q:"The windows were boarded up ---- further damage from the storm.", o:["for fear","in case","lest","so that","for fear of"], a:4, e:"“for fear of + isim” korkusuyla anlamını verir; “in case / lest” cümle ister."},
+
+  /* ---------- con-result ---------- */
+  {id:"x2-con-result-01", sub:"con-result", from:["conj-08"], q:"The instructions were ---- confusing that half the participants gave up.", o:["too","very","as","so","such"], a:3, e:"“so + sıfat + that” kalıbı sonuç bildirir."},
+  {id:"x2-con-result-02", sub:"con-result", from:["conj-09"], q:"It was ---- an unusual find that the museum devoted a whole room to it.", o:["as","such","so","too","very"], a:1, e:"“such + a/an + sıfat + isim + that” kalıbı kullanılır."},
+  {id:"x2-con-result-03", sub:"con-result", from:["conj-10"], q:"The harbour silted up; ----, the town lost its importance as a port.", o:["consequently","nevertheless","however","otherwise","instead"], a:0, e:"Sonuç bildiren geçiş ifadesi “consequently”dir."},
+  {id:"x2-con-result-04", sub:"con-result", from:["conj-11"], q:"The text is too damaged ----.", o:["for reading it","so that read","that read","to be read","to read it"], a:3, e:"“too + sıfat + to + edilgen mastar”: metin okunan taraftır."},
+  {id:"x2-con-result-05", sub:"con-result", from:["conj-08"], q:"The dam collapsed, ---- the whole valley.", o:["which flooding","so flooding","flooding","flooded","flood"], a:2, e:"Sonuç bir -ing öbeğiyle verilir: flooding the whole valley."},
+  {id:"x2-con-result-06", sub:"con-result", from:["conj-09"], q:"There were ---- many applications ---- the deadline had to be extended.", o:["so / that","such / that","too / to","as / as","very / that"], a:0, e:"“so many + isim + that” kalıbı kullanılır."},
+  {id:"x2-con-result-07", sub:"con-result", from:["conj-10"], q:"Three of the sensors failed; ----, the alarm did not sound.", o:["in contrast","on the contrary","by comparison","even so","as a result"], a:4, e:"Sonuç bildiren “as a result” gerekir."},
+  {id:"x2-con-result-08", sub:"con-result", from:["conj-11"], q:"The road was closed for repairs and ---- traffic was diverted through the village.", o:["meanwhile","conversely","accordingly","alternatively","likewise"], a:2, e:"“accordingly” buna bağlı olarak demektir ve sonuç bildirir."},
+  {id:"x2-con-result-09", sub:"con-result", from:["conj-08","conj-10"], q:"The new drug proved ---- effective ---- it was approved within a year.", o:["very / that","so / that","such / that","too / to","as / as"], a:1, e:"“so + sıfat + that” kalıbı sonuç bildirir."},
+  {id:"x2-con-result-10", sub:"con-result", from:["conj-09","conj-11"], q:"Fuel became scarce, ---- many factories to close.", o:["forcing","forced","force","which forcing","and forcing them"], a:0, e:"Sonuç “forcing + nesne + to V1” biçiminde bir -ing öbeğiyle verilir."},
+
+  /* ---------- con-purpose ---------- */
+  {id:"x2-con-purpose-01", sub:"con-purpose", from:["conj-12"], q:"The doors are kept locked ---- nobody can enter without a card.", o:["in order to","for","because","so that","so as"], a:3, e:"Yan cümlede özne ve modal olduğu için “so that” gerekir."},
+  {id:"x2-con-purpose-02", sub:"con-purpose", from:["conj-13"], q:"He arrived early ---- get a seat near the front.", o:["in order that","so that","for","with a view","in order to"], a:4, e:"Mastarla kurulan amaç “in order to + V1” ile verilir."},
+  {id:"x2-con-purpose-03", sub:"con-purpose", from:["conj-14"], q:"Keep a copy of the file ---- the original is deleted.", o:["in case","in case of","so that","in order to","for fear"], a:0, e:"“in case + cümle” olası bir duruma karşı önlem bildirir."},
+  {id:"x2-con-purpose-04", sub:"con-purpose", from:["conj-12"], q:"The samples were sealed ---- contamination.", o:["so that avoid","in order avoid","to avoiding","to avoid","for avoid"], a:3, e:"Amaç mastarla verilir: to avoid contamination."},
+  {id:"x2-con-purpose-05", sub:"con-purpose", from:["conj-13"], q:"The text was translated into four languages ---- reach a wider audience.", o:["so that","in order that","for","by","so as to"], a:4, e:"Mastar geldiği için “so as to / in order to” kullanılır."},
+  {id:"x2-con-purpose-06", sub:"con-purpose", from:["conj-14"], q:"The names were removed ---- anyone should recognise the participants.", o:["lest","in case of","so as to","in order to","for fear"], a:0, e:"“lest + should” olmasın diye anlamı verir ve cümle alır."},
+  {id:"x2-con-purpose-07", sub:"con-purpose", from:["conj-12"], q:"Extra lighting was installed ---- the corridors would be safer at night.", o:["by means of","so that","so as to","in order to","for"], a:1, e:"Yan cümlede özne ve yüklem olduğu için “so that” gerekir."},
+  {id:"x2-con-purpose-08", sub:"con-purpose", from:["conj-13"], q:"The wall was raised ---- preventing flooding in the lower streets.", o:["in order to","so as to","so that","for to","with the aim of"], a:4, e:"“with the aim of + V-ing” amaç bildirir."},
+  {id:"x2-con-purpose-09", sub:"con-purpose", from:["conj-14"], q:"Take an extra battery ---- a long delay.", o:["in case of","in case","so that","lest","in order that"], a:0, e:"İsim öbeği geldiği için “in case of” gerekir."},
+  {id:"x2-con-purpose-10", sub:"con-purpose", from:["conj-12","conj-13"], q:"The figures were rounded ---- the table easier to read.", o:["so that make","in order make","to making","to make","for making"], a:3, e:"Amaç mastarla verilir: to make the table easier."},
+
+  /* ---------- con-correlative ---------- */
+  {id:"x2-con-correlative-01", sub:"con-correlative", from:["conj-15"], q:"---- the design ---- the price was acceptable to the customer.", o:["Neither / nor","Either / nor","Both / or","Not only / but","Neither / or"], a:0, e:"“neither … nor” iki olumsuzu birleştirir."},
+  {id:"x2-con-correlative-02", sub:"con-correlative", from:["conj-16"], q:"The course is open ---- to undergraduates ---- to postgraduates.", o:["not only / also","whether / and","both / and","either / nor","neither / and"], a:2, e:"“both … and” iki tarafı olumlu biçimde birleştirir."},
+  {id:"x2-con-correlative-03", sub:"con-correlative", from:["conj-17"], q:"---- was the winter unusually cold, but it was also unusually long.", o:["Neither","Either","Both","Not only","Not just that"], a:3, e:"“Not only” cümle başında devrik yapı kurar ve “but also” ile tamamlanır."},
+  {id:"x2-con-correlative-04", sub:"con-correlative", from:["conj-15"], q:"You can submit the form ---- online ---- by post.", o:["both / or","whether / or not","not only / but","either / or","neither / or"], a:3, e:"İki seçenek sunulmaktadır: “either … or”."},
+  {id:"x2-con-correlative-05", sub:"con-correlative", from:["conj-16"], q:"It is unclear ---- the manuscript is genuine ---- not.", o:["if / or","either / or","whether / nor","both / and","whether / or"], a:4, e:"“whether … or not” kalıbı dolaylı soruda kullanılır."},
+  {id:"x2-con-correlative-06", sub:"con-correlative", from:["conj-17"], q:"Neither the students nor the lecturer ---- informed about the change.", o:["being","was","were","have been","are"], a:1, e:"“neither … nor” yapısında yüklem en yakın özneye uyar; “the lecturer” tekildir."},
+  {id:"x2-con-correlative-07", sub:"con-correlative", from:["conj-15"], q:"Not only ---- the museum free, but it also stays open until midnight.", o:["does it be","being","is","it is","are"], a:2, e:"“Not only” cümle başında devrik yapı ister: Not only is the museum free."},
+  {id:"x2-con-correlative-08", sub:"con-correlative", from:["conj-16"], q:"Either the sensor ---- faulty, or the software needs updating.", o:["have been","be","is","are","were"], a:2, e:"“either … or” yapısında yüklem en yakın özneye uyar; “the sensor” tekildir."},
+  {id:"x2-con-correlative-09", sub:"con-correlative", from:["conj-17"], q:"The building serves ---- as a school ---- as a community centre.", o:["neither / or","not only / and","whether / or","both / and","either / nor"], a:3, e:"İki işlev birlikte üstlenildiği için “both … and” gerekir."},
+  {id:"x2-con-correlative-10", sub:"con-correlative", from:["conj-15","conj-17"], q:"The plan is ---- realistic ---- affordable, which is why it was rejected.", o:["neither / nor","either / or","both / and","not only / but also","whether / or"], a:0, e:"Planın reddedilmesi iki olumsuz durumu gösterir: neither realistic nor affordable."},
+
+  /* ---------- con-time ---------- */
+  {id:"x2-con-time-01", sub:"con-time", from:["conj-18"], q:"---- the guests had left, we started clearing the tables.", o:["Meanwhile","As soon as","During","Until","By the time of"], a:1, e:"Ardışıklık “As soon as” ile kurulur; “During” isim ister."},
+  {id:"x2-con-time-02", sub:"con-time", from:["conj-19"], q:"Wait here ---- your name is called.", o:["by the time","as soon as","since","while","until"], a:4, e:"Bir noktaya kadar devam etme “until” ile verilir."},
+  {id:"x2-con-time-03", sub:"con-time", from:["conj-20"], q:"---- the operation, the patient was kept under observation for two days.", o:["As soon as","Once","When","Following","After that"], a:3, e:"İsim öbeği geldiği için edat gerekir: “Following the operation”."},
+  {id:"x2-con-time-04", sub:"con-time", from:["conj-18"], q:"Call me ---- you land, whatever the time is.", o:["prior to","the minute","the minute of","during","following"], a:1, e:"“the minute (that)” “-er ermez” anlamı veren bir zaman bağlacıdır."},
+  {id:"x2-con-time-05", sub:"con-time", from:["conj-19"], q:"---- the survey was being carried out, two of the villages were evacuated.", o:["While","During","In","For","Meanwhile"], a:0, e:"Yan cümle geldiği için “While” gerekir."},
+  {id:"x2-con-time-06", sub:"con-time", from:["conj-20"], q:"---- signing the contract, read every clause carefully.", o:["In advance","Beforehand","Earlier than","Before","Prior"], a:3, e:"“Before + V-ing” önce anlamı verir; “Prior” tek başına edat değildir."},
+  {id:"x2-con-time-07", sub:"con-time", from:["conj-18"], q:"The machine stops ---- the temperature reaches the limit.", o:["in the course","by the time of","the instant","the instant of","during"], a:2, e:"“the instant (that)” anında anlamı veren bir zaman bağlacıdır."},
+  {id:"x2-con-time-08", sub:"con-time", from:["conj-19"], q:"He worked as a teacher ---- three years before moving into research.", o:["for","during","while","since","until"], a:0, e:"Süre uzunluğu “for” ile verilir; “during” belirli bir dönem ister."},
+  {id:"x2-con-time-09", sub:"con-time", from:["conj-20"], q:"No sooner had the ceremony ended ---- the rain started.", o:["when","that","then","as","than"], a:4, e:"“No sooner … than” kalıbı sabittir."},
+  {id:"x2-con-time-10", sub:"con-time", from:["conj-18","conj-20"], q:"The region had no railway ---- the line was opened in 1904.", o:["until","by the time","as soon as","while","since"], a:0, e:"Belirli bir ana kadar süren durum “until” ile verilir; “since” anlamı tersine çevirir."}
+);
+Object.assign(ZORLUK, {
+  "x2-con-contrast-01":3,"x2-con-contrast-02":4,"x2-con-contrast-03":3,"x2-con-contrast-04":2,"x2-con-contrast-05":5,
+  "x2-con-contrast-06":4,"x2-con-contrast-07":5,"x2-con-contrast-08":3,"x2-con-contrast-09":7,"x2-con-contrast-10":6,
+  "x2-con-cause-01":2,"x2-con-cause-02":2,"x2-con-cause-03":6,"x2-con-cause-04":6,"x2-con-cause-05":3,
+  "x2-con-cause-06":4,"x2-con-cause-07":6,"x2-con-cause-08":7,"x2-con-cause-09":6,"x2-con-cause-10":7,
+  "x2-con-result-01":2,"x2-con-result-02":4,"x2-con-result-03":3,"x2-con-result-04":5,"x2-con-result-05":5,
+  "x2-con-result-06":3,"x2-con-result-07":3,"x2-con-result-08":6,"x2-con-result-09":4,"x2-con-result-10":7,
+  "x2-con-purpose-01":3,"x2-con-purpose-02":3,"x2-con-purpose-03":4,"x2-con-purpose-04":4,"x2-con-purpose-05":4,
+  "x2-con-purpose-06":8,"x2-con-purpose-07":5,"x2-con-purpose-08":6,"x2-con-purpose-09":4,"x2-con-purpose-10":5,
+  "x2-con-correlative-01":3,"x2-con-correlative-02":3,"x2-con-correlative-03":5,"x2-con-correlative-04":2,"x2-con-correlative-05":5,
+  "x2-con-correlative-06":6,"x2-con-correlative-07":6,"x2-con-correlative-08":6,"x2-con-correlative-09":3,"x2-con-correlative-10":7,
+  "x2-con-time-01":2,"x2-con-time-02":2,"x2-con-time-03":5,"x2-con-time-04":5,"x2-con-time-05":3,
+  "x2-con-time-06":4,"x2-con-time-07":7,"x2-con-time-08":4,"x2-con-time-09":5,"x2-con-time-10":5
+});

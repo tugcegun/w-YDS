@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>w YDS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="YDS için kişisel çalışma masası: 20 soruluk konu testleri, yanlış defteri ve haftalık sorular.">
+<meta name="theme-color" content="#582B36">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23582B36'/%3E%3Ctext x='32' y='43' font-family='Satoshi,Arial,sans-serif' font-weight='700' font-style='italic' font-size='38' text-anchor='middle' fill='%23EFE0CD'%3Ew%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://api.fontshare.com">
+<link rel="preconnect" href="https://cdn.fontshare.com" crossorigin>
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=satoshi@300,301,400,401,500,501,700,701,900,901&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="boot" id="boot" role="status">Yükleniyor…</div>
+
+<section class="gate" id="gate" hidden>
+  <div class="gate-side">
+    <div class="gate-mark"><i>w</i> YDS</div>
+    <p class="gate-lead">YDS'ye hazırlanırken kendi çalışma masan.</p>
+    <ul class="gate-list">
+      <li><b>Konu testleri</b><span>10 konu, her biri 20 soru; sorular tek tek gelir.</span></li>
+      <li><b>Yanlış defteri</b><span>Her yanlışın saklanır, sana özel konu anlatımıyla tekrar edersin.</span></li>
+      <li><b>Haftalık sorular</b><span>8 haftalık plan, ÖSYM soru düzenine göre.</span></li>
+      <li><b>Kişisel test</b><span>Yanlış yaptığın her alt başlıktan, o yanlışları hedefleyen yeni bir soru.</span></li>
+      <li><b>Kelime</b><span>2000'den bu yana en sık çıkan YDS kelimeleri, eş anlamlılar ve paragraf analizi.</span></li>
+      <li><b>Kelimelerim</b><span>Kendi kelime kitaplığın: hangi gün hangi kelimeyi ekleyip öğrendiğin.</span></li>
+      <li><b>Akıllı kitabım</b><span>İstediğin soruyu ve konu anlatımını kendi kitabına ekle.</span></li>
+    </ul>
+  </div>
+  <div class="gate-main">
+    <div class="gate-card">
+      <h1>Giriş yap</h1>
+      <p>Google hesabınla girdiğinde site senin adınla açılır; kayıtların hangi cihazdan girersen gir seninle gelir.</p>
+      <button type="button" class="gbtn" id="gSignIn">
+        <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        <span>Google ile giriş yap</span>
+      </button>
+      <p class="gate-err" id="gateErr" role="alert" hidden></p>
+      <div class="gate-or"><span>veya</span></div>
+      <button type="button" class="btn ghost" id="gGuest">Giriş yapmadan dene</button>
+      <p class="gate-fine">Hesapsız kullanımda kayıtlar yalnızca bu tarayıcıda kalır.</p>
+    </div>
+  </div>
+</section>
+
+<div class="app" id="app" hidden>
+  <aside class="rail">
+    <div class="brand"><div><span class="brand-name" id="brandName"><i>w</i> <b>YDS</b></span><span class="brand-sub">Kişisel çalışma masası</span></div></div>
+    <nav class="nav" id="nav" aria-label="Ana menü"></nav>
+    <div class="rail-foot">
+      <div class="countdown" id="countdown"></div>
+      <div id="account"></div>
+      <div class="rail-tools">
+        <button id="themeBtn" type="button" aria-label="Temayı değiştir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg><span id="themeLbl">Koyu</span></button>
+        <button type="button" data-act="go" data-v="settings" aria-label="Ayarlar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg><span>Ayarlar</span></button>
+      </div>
+    </div>
+  </aside>
+  <main class="main" id="main"></main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="js/firebase-config.js"></script>
+<script src="js/bank.js"></script>
+<script src="js/data/konu-zamanlar-modallar-passive.js"></script>
+<script src="js/data/konu-kelime-edat-baglac.js"></script>
+<script src="js/data/konu-clauses-conditionals.js"></script>
+<script src="js/data/konu-tamamlama-okuma.js"></script>
+<script src="js/data/hafta-1-4.js"></script>
+<script src="js/data/hafta-5-8.js"></script>
+<script src="js/data/kisisel-zamanlar.js"></script>
+<script src="js/data/kisisel-kelime.js"></script>
+<script src="js/data/kisisel-yapilar.js"></script>
+<script src="js/data/kisisel-okuma.js"></script>
+<script src="js/data/ekstra-zamanlar.js"></script>
+<script src="js/data/ekstra-zamanlar-2.js"></script>
+<script src="js/data/ekstra-modallar.js"></script>
+<script src="js/data/ekstra-passive.js"></script>
+<script src="js/data/ekstra-kelime.js"></script>
+<script src="js/data/ekstra-edat.js"></script>
+<script src="js/data/ekstra-baglac.js"></script>
+<script src="js/data/ekstra-clauses.js"></script>
+<script src="js/data/ekstra-conditionals.js"></script>
+<script src="js/data/ekstra-tamamlama.js"></script>
+<script src="js/data/ekstra-okuma-1.js"></script>
+<script src="js/data/ekstra-okuma-2.js"></script>
+<script src="js/data/ekstra-zamanlar-3.js"></script>
+<script src="js/data/ekstra-zamanlar-4.js"></script>
+<script src="js/data/ekstra-modallar-2.js"></script>
+<script src="js/data/ekstra-passive-2.js"></script>
+<script src="js/data/ekstra-kelime-2.js"></script>
+<script src="js/data/ekstra-edat-2.js"></script>
+<script src="js/data/ekstra-baglac-2.js"></script>
+<script src="js/data/ekstra-clauses-2.js"></script>
+<script src="js/data/ekstra-conditionals-2.js"></script>
+<script src="js/data/ekstra-tamamlama-2.js"></script>
+<script src="js/data/ekstra-okuma-3.js"></script>
+<script src="js/data/ekstra-okuma-4.js"></script>
+<script src="js/data/ekstra-zamanlar-5.js"></script>
+<script src="js/data/ekstra-modallar-3.js"></script>
+<script src="js/data/ekstra-passive-3.js"></script>
+<script src="js/data/ekstra-kelime-3.js"></script>
+<script src="js/data/ekstra-edat-3.js"></script>
+<script src="js/data/ekstra-baglac-3.js"></script>
+<script src="js/data/ekstra-clauses-3.js"></script>
+<script src="js/data/ekstra-conditionals-3.js"></script>
+<script src="js/data/ekstra-tamamlama-3.js"></script>
+<script src="js/data/ekstra-okuma-5.js"></script>
+<script src="js/data/ekstra-okuma-6.js"></script>
+<script src="js/data/tekrar-zamanlar.js"></script>
+<script src="js/data/tekrar-modallar.js"></script>
+<script src="js/data/tekrar-passive.js"></script>
+<script src="js/data/tekrar-kelime.js"></script>
+<script src="js/data/tekrar-edat.js"></script>
+<script src="js/data/tekrar-baglac.js"></script>
+<script src="js/data/tekrar-clauses.js"></script>
+<script src="js/data/tekrar-conditionals.js"></script>
+<script src="js/data/tekrar-tamamlama.js"></script>
+<script src="js/data/tekrar-okuma-1.js"></script>
+<script src="js/data/tekrar-okuma-2.js"></script>
+<script src="js/data/ozel-zamanlar-modallar.js"></script>
+<script src="js/data/ozel-passive-kelime.js"></script>
+<script src="js/data/ozel-edat-baglac.js"></script>
+<script src="js/data/ozel-yapilar.js"></script>
+<script src="js/data/ozel-okuma.js"></script>
+<script src="js/data/zorluk-zamanlar-modallar.js"></script>
+<script src="js/data/zorluk-passive-kelime.js"></script>
+<script src="js/data/zorluk-edat-baglac.js"></script>
+<script src="js/data/zorluk-yapilar.js"></script>
+<script src="js/data/zorluk-okuma.js"></script>
+<script src="js/data/kelime-1.js"></script>
+<script src="js/data/kelime-2.js"></script>
+<script src="js/data/kelime-3.js"></script>
+<script src="js/data/kelime-4.js"></script>
+<script src="js/data/kelime-5.js"></script>
+<script src="js/data/kelime-6.js"></script>
+<script src="js/data/kelime-7.js"></script>
+<script src="js/data/kelime-sinav.js"></script>
+<script src="js/data/kelime-analiz.js"></script>
+<script src="js/data/sozluk-1.js"></script>
+<script src="js/data/sozluk-2.js"></script>
+<script src="js/data/sozluk-3.js"></script>
+<script src="js/data/sozluk-4.js"></script>
+<script src="js/data/sozluk-5.js"></script>
+<script src="js/data/sozluk-6.js"></script>
+<script src="js/cloud.js"></script>
+<script src="js/app.js"></script>
+<script src="js/kelime.js"></script>
+<script src="js/kelimelerim.js"></script>
+</body>
+</html>
