@@ -6,7 +6,9 @@
       "firestore.rules",
       "README.md",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "BASLAT.bat",
+      "sunucu.mjs"
     ],
     "headers": [
       {
