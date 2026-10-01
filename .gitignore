@@ -3,3 +3,7 @@ node_modules/
 *.log
 .DS_Store
 Thumbs.db
+
+# yerel yardımcılar (siteye gerekmezler)
+/BASLAT.bat
+/sunucu.mjs

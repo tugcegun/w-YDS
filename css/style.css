@@ -870,6 +870,19 @@ button.kw-chip{cursor:pointer;font-family:inherit}
 .mw-learned-in{animation:kwUp .35s ease both;padding-bottom:6px}
 .mw-learned-in .mw-row:first-child{border-top:0}
 .mw-alldone{margin:8px 0 0}
+/* çalışma merkezi: kapsam seçimi + üç yol (yazarak çalış · 5 şık · çıkmış soru) */
+.mw-hub{margin-top:18px;animation:kwUp .45s ease both}
+.mw-hub-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:2px}
+.mw-hub-bar select{width:auto;min-width:170px;padding:8px 12px}
+.mw-hub-strip{margin-top:14px}
+.mw-hub-strip .v small{font-size:15px;color:var(--ink-3);font-weight:500;margin-left:3px}
+.mw-hub-acts{margin-top:16px}
+.mw-hub-acts .btn{min-width:150px}
+@media (max-width:640px){.mw-hub-acts .btn{flex:1 1 100%;min-width:0}}
+.mw-learned>summary{flex-wrap:wrap}
+.mw-fold-acts{display:inline-flex;gap:6px;margin-left:auto}
+.mw-fold-acts .btn{padding:3px 9px;font-size:12.5px}
+.same .mw-hub{animation:none}
 .kw-weekline{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0}
 .mw-wrong-fold{background:var(--surface);border:1px solid var(--line);padding:0 22px;margin-top:18px}
 .mw-wrong-fold>summary .st-nm b{color:var(--no-ink)}

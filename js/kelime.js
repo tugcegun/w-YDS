@@ -57,8 +57,11 @@ function entryOf(key){
 function kwMark(key,ok,secs){
   const t=todayISO(), v=vocab[key]||(vocab[key]={b:0,due:t,first:t,ok:0,no:0});
   const wasNew=!v.last;
-  if(ok){v.b=wasNew?2:Math.min(6,v.b+1);v.ok++}else{v.b=1;v.no++}
-  v.due=addDays(t,ok?BOX_DAYS[v.b]:1);v.last=t;
+  /* KW.practice: öğrenilmiş kelimeler isteğe bağlı tazeleme çalışması. Yanlış bilinse bile
+     kutu düşmez, "öğrenildi" işareti korunur — yoksa günü gelen tekrarı beklerdi. */
+  const keep=KW.practice&&v.b>=KW_LEARNED;
+  if(ok){v.b=wasNew?2:Math.min(6,v.b+1);v.ok++}else{if(!keep)v.b=1;v.no++}
+  v.due=addDays(t,ok||keep?BOX_DAYS[v.b]:1);v.last=t;
   /* öğrenildiği gün Kelimelerim sayfasında gün gün görünür */
   if(v.b>=KW_LEARNED&&!v.learnedOn)v.learnedOn=t;
   {const w=words.find(x=>ownKey(x)===key);if(w){w.learned=v.b>=KW_LEARNED;if(w.learned&&!w.learnedOn)w.learnedOn=t}}
@@ -90,7 +93,8 @@ function kwQueue(){
 
 /* ================= Sayfa ================= */
 const KW={mode:null,deck:[],i:0,show:false,ok:0,no:0,re:new Set(),t0:0,missed:[],
-  quiz:null,q:"",filter:"all",text:"",pid:"",res:null,fill:null};
+  quiz:null,q:"",filter:"all",text:"",pid:"",res:null,fill:null,
+  practice:false,title:"",src:""};
 
 function vKelime(){
   if(KW.mode==="cards") return kwCardsView();
@@ -454,6 +458,80 @@ function kwResHTML(r){
   </div>`;
 }
 
+/* ================= Kelimelerin geçtiği çıkmış sorular =================
+   Sitedeki bütün sorular (konu testleri, haftalık çıkmış sorular, kişisel ve ekstra havuzlar)
+   bir kez taranır: soru kökü, şıklar ve varsa okuma metni içindeki kelimeler — YDS listesindekiler
+   biçimleriyle (alleviate → alleviating) — sözlük anahtarına göre soru numaralarına bağlanır.
+   Sonra "şu kelimeler hangi çıkmış sorularda geçiyor" sorusu anında yanıtlanır. */
+let _kwQIdx=null, _kwIdxWarm=false;
+function kwQIndex(){
+  if(_kwQIdx)return _kwQIdx;
+  const idx=new Map();
+  const add=(k,id)=>{let s=idx.get(k);if(!s)idx.set(k,s=[]);if(!s.includes(id))s.push(id)};
+  const feed=(text,id)=>{
+    const tk=kwTokens(text), ws=[];
+    for(let i=0;i<tk.length;i++){
+      if(!tk[i].w)continue;
+      ws.push([i,tk[i].t.toLowerCase().replace(/[’]/g,"'")]);
+    }
+    ws.forEach(([i,t])=>add(KW_FORM.get(t)||t,id));
+    /* çok kelimeli kalıplar: ardışık n kelime birleşimi listede varsa soruya bağlanır */
+    for(let n=2;n<=4;n++)for(let j=0;j+n<=ws.length;j++){
+      let s=ws[j][1];for(let m=j+1;m<j+n;m++)s+=" "+ws[m][1];
+      const b=KW_FORM.get(s);if(b)add(b,id);
+    }
+  };
+  Object.values(Q).forEach(q=>{
+    if(q.q)feed(q.q,q.id);
+    (q.o||[]).forEach(o=>{if(typeof o==="string")feed(o,q.id)});
+    const p=q.passage||(q.pid&&PASSAGES[q.pid]);
+    if(typeof p==="string"&&!/[ğüşıöç]/.test(p))feed(p,q.id);
+  });
+  _kwQIdx=idx;return idx;
+}
+/* Tarama ağır (yarım saniye). Kullanıcı Kelimelerim'e girmeden önce, boşta olduğunda
+   hazırlanır; ilk ihtiyaçta zaten hazır olur. requestIdleCallback yoksa kısa bir gecikmeyle. */
+function kwWarmIndex(){
+  if(_kwQIdx||_kwIdxWarm)return;
+  _kwIdxWarm=true;
+  const run=()=>{if(!_kwQIdx)kwQIndex()};
+  if(typeof requestIdleCallback==="function")requestIdleCallback(run,{timeout:4000});
+  else setTimeout(run,2500);
+}
+/* anahtar listedeki bir kelime mi (yoksa kullanıcının kendi kelimesi mi) */
+function kwSearchKeys(keys){
+  return [...new Set(keys.map(k=>{const e=entryOf(k);return e?String(e.w).toLowerCase().trim():String(k).toLowerCase().trim()}).filter(Boolean))];
+}
+/* verilen kelimelerin geçtiği sorular. Önce hiç çözülmemişler, sonra yanlış yapılanlar gelir. */
+function kwExamQs(keys,limit){
+  const idx=kwQIndex(), base=kwSearchKeys(keys), hit=new Map();
+  base.forEach(w=>{
+    const forms=(w.includes(" ")?phraseForms(w):wordForms(w)).map(f=>KW_FORM.get(f)||f);
+    forms.forEach(f=>(idx.get(f)||[]).forEach(id=>{
+      let s=hit.get(id);if(!s)hit.set(id,s=[]);if(!s.includes(w))s.push(w)}));
+  });
+  if(!hit.size)return [];
+  /* okuma metinli sorularda metin bütünlüğü için aynı paragrafın öbür soruları da eklenir */
+  const ids=new Set(hit.keys());
+  hit.forEach((_,id)=>{
+    const q=Q[id];if(!q||!q.pid)return;
+    Object.values(Q).forEach(o=>{if(o.pid===q.pid)ids.add(o.id)});
+  });
+  const rank=id=>{const a=answered[id];return a?(a.ok?2:1):0};
+  return [...ids].map(id=>({id,words:hit.get(id)||[],rank:rank(id),q:Q[id]}))
+    .sort((a,b)=>a.rank-b.rank||(b.words.length-a.words.length))
+    .slice(0,limit||40);
+}
+const kwExamScope=s=>`Kelimelerin geçtiği sorular · ${s}`;
+/* seçili kelimelerle çıkmış soru testini başlatır */
+function kwStartExam(keys,label){
+  const hits=kwExamQs(keys,40);
+  if(!hits.length){toast("Bu kelimeler sitenin sorularında geçmiyor");return}
+  const MAX=20, list=hits.slice(0,MAX);
+  startTest({title:kwExamScope(label),src:"kwq:"+label,ids:list.map(x=>x.id),back:"mywords"});
+  toast(list.length<hits.length?`${list.length} soru açıldı (${hits.length} eşleşmenin ilk ${MAX} tanesi)`:`${list.length} çıkmış soru açıldı`);
+}
+
 /* ---- site metinlerinin analizi ---- */
 let _corpus=null;
 function kwCorpus(){
@@ -484,11 +562,14 @@ function kwCorpusHTML(){
 }
 
 /* ================= Kart çalışması ================= */
-function kwStartCards(only){
+/* opts: {title, practice} — practice: öğrenilmiş kelimeleri tazeleme çalışması;
+   bu modda yanlış bilmek kutu düşürmez, "öğrenildi" işareti korunur. */
+function kwStartCards(only,opts={}){
   const {due,news}=kwQueue();
   const deck=only&&only.length?only.slice():due.concat(news);
-  if(!deck.length){toast("Bugün çalışılacak kelime kalmadı");return}
-  Object.assign(KW,{mode:"cards",deck,i:0,cur:null,ok:0,no:0,re:new Set(),t0:Date.now(),missed:[],nNew:news.length});
+  if(!deck.length){toast("Çalışılacak kelime yok");return}
+  Object.assign(KW,{mode:"cards",deck,i:0,cur:null,ok:0,no:0,re:new Set(),t0:Date.now(),missed:[],
+    nNew:news.length,practice:!!opts.practice,title:opts.title||"Bugünün kelimeleri",src:opts.src||""});
   render();window.scrollTo(0,0);kwAnsFocus();
 }
 function kwCardsView(){
@@ -501,12 +582,13 @@ function kwCardsView(){
   return `<div class="runner kw-run">
     <div class="run-top">
       <button type="button" class="btn ghost sm" data-act="kw-exit">${svg(I.x,15)} Çık</button>
-      <div class="run-title"><div class="eyebrow">Bugünün kelimeleri · anlamını yaz</div><b>${KW.i+1} / ${total}</b></div>
+      <div class="run-title"><div class="eyebrow">${esc(KW.title||"Bugünün kelimeleri")} · anlamını yaz</div><b>${KW.i+1} / ${total}</b></div>
       <div class="run-time"><b>${KW.ok}</b>doğru</div>
     </div>
     <div class="kw-prog"><i style="width:${Math.round(KW.i/total*100)}%"></i></div>
     <article class="sheet kw-card">
       <div class="kw-card-top">${isNew?`<span class="chip">Yeni</span>`:`<span class="chip">Tekrar</span>`}
+        ${KW.practice?`<span class="chip">Tazeleme</span>`:""}
         ${e.p?`<span class="chip">${POS_TR[e.p]}</span>`:""}${e.own?`<span class="chip">Kelimelerim</span>`:`<span class="kw-f" title="${FREQ_TR[e.f||1]}">${stars(e.f)}</span>`}</div>
       <div class="kw-card-w">${esc(e.w)}</div>
       <div class="mw-ans"><input type="text" id="kwAns" placeholder="Türkçesini yaz, Enter'a bas" autocomplete="off" ${c?`value="${esc(c.typed)}" disabled`:""}></div>
@@ -552,7 +634,7 @@ function kwCardNext(){if(!KW.cur)return;KW.i++;KW.cur=null;render();window.scrol
 const kwAnsFocus=()=>setTimeout(()=>{const i=document.getElementById("kwAns");if(i&&!i.disabled)i.focus()},60);
 function kwCardsDone(){
   const miss=KW.missed.map(k=>({k,e:entryOf(k)})).filter(x=>x.e);
-  return head("Bugünün kelimeleri","Bitti",`${KW.ok} kez doğru yazdın, ${KW.no} kez yanlış. Yanlışların yarın yeniden gelecek ve Kelimelerim sayfasındaki “Yanlış yazdıkların” bölümünde duruyor.`)
+  return head(KW.title||"Bugünün kelimeleri","Bitti",`${KW.ok} kez doğru yazdın, ${KW.no} kez yanlış. Yanlışların yarın yeniden gelecek ve Kelimelerim sayfasındaki “Yanlış yazdıkların” bölümünde duruyor.`)
   +`<section class="card lift"><div class="row">
       <button type="button" class="btn primary" data-act="kw-quiz-session">Bu kelimelerle teste geç ${svg(I.arrow,16)}</button>
       <button type="button" class="btn ghost" data-act="kw-exit">Geri dön</button></div>
@@ -592,6 +674,7 @@ function kwMakeQ(e,type){
   return null;
 }
 function kwStartQuiz(){
+  KW.practice=false;KW.title="";
   const t=todayISO();
   const seen=Object.keys(vocab).filter(k=>KW_BY[k]&&vocab[k].last);
   /* önce zorlandıkların ve yeni öğrendiklerin, sonra rastgele; az çalıştıysan çok sık çıkanlarla tamamlanır */
@@ -862,7 +945,7 @@ document.addEventListener("click",e=>{
     case "kw-cards": kwStartCards(); break;
     case "kw-quiz": kwStartQuiz(); break;
     case "kw-quiz-session": kwSessionQuiz(KW.quiz&&KW.quiz.session&&KW.mode==="quiz"?KW.quiz.session:KW.deck); break;
-    case "kw-exit": KW.mode=null;KW.quiz=null;render();window.scrollTo(0,0); break;
+    case "kw-exit": KW.mode=null;KW.quiz=null;KW.practice=false;KW.title="";render();window.scrollTo(0,0); break;
     case "kw-check": kwCardCheck(false); break;
     case "kw-skip": kwCardCheck(true); break;
     case "kw-fix": kwCardFix(); break;

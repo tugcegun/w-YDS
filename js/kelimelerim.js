@@ -3,7 +3,9 @@
    words = [{id, en, tr, learned, date: eklendiği gün, src: kaynak (kitap adı vb.), learnedOn: öğrenildiği gün}]
    Gün gün: o gün eklenen kelimeler + o gün öğrenilen kelimeler (kendi kelimelerin ve YDS listesinden, vocab.learnedOn).
    Eklenen kelimeler Kelime sayfasındaki günlük tekrara ("Başla") da girer. */
-const MW={view:"day",q:"",trDirty:false,open:new Set()};
+const MW={view:"day",q:"",trDirty:false,open:new Set(),scope:"todo",range:"all",src:""};
+const MW_SCOPE=[["todo","Çalışılacaklar"],["learned","Öğrendiklerim"],["all","Hepsi"]];
+const MW_RANGE=[["all","Tüm zamanlar"],["7","Son 7 gün"],["30","Son 30 gün"]];
 const mwDate=w=>w.date||isoOf(new Date(+w.id||Date.now()));
 const mwSources=()=>[...new Set(words.map(w=>(w.src||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"tr"));
 function mwDayName(iso){
@@ -41,6 +43,7 @@ function vMyWords(){
   mwMigrate();
   if(KW.mode==="cards") return kwCardsView();
   if(KW.mode==="quiz") return kwQuizView();
+  setTimeout(mwTick,0);   /* çıkmış soru sayacı sayfayı çizdikten sonra doldurulur */
   const t=todayISO(), all=words.slice();
   const learned=all.filter(w=>w.learned).length;
   const week=all.filter(w=>daysTo(mwDate(w))>-7).length;
@@ -58,10 +61,11 @@ function vMyWords(){
       </div>
       <div class="strip kw-strip">
         <div><div class="k">Kitaplığında</div><div class="v">${all.length}</div><div class="m">${week} tanesi son 7 günde eklendi</div></div>
-        <div><div class="k">Öğrendiğin</div><div class="v">${learned}</div><div class="m">en az 4 kez üst üste bildiğin ya da işaretlediğin</div></div>
-        <div><div class="k">Çalışılacak</div><div class="v">${todo}</div><div class="m mw-acts">${todo?`<button type="button" class="btn sm primary" data-act="mw-study" data-v="all">Anlamlarını yazarak çalış</button>`:`<span>hepsini öğrendin</span>`}</div></div>
+        <div><div class="k">Öğrendiğin</div><div class="v">${learned}</div><div class="m mw-acts">${learned?`<button type="button" class="btn sm" data-act="mw-scope" data-v="learned">${learned} kelimeye çalış</button>`:`<span>en az 4 kez üst üste bildiğin ya da işaretlediğin</span>`}</div></div>
+        <div><div class="k">Çalışılacak</div><div class="v">${todo}</div><div class="m mw-acts">${todo?`<button type="button" class="btn sm primary" data-act="mw-scope" data-v="todo">Anlamlarını yazarak çalış</button>`:`<span>hepsini öğrendin — yukarıdan öğrendiklerini tazeleyebilirsin</span>`}</div></div>
       </div>
     </section>
+    ${mwHubHTML(all,learned,todo)}
     <div class="mw-bar">
       <div class="seg" role="tablist">${[["day","Günlere göre"],["src","Kaynağa göre"]].map(([v,l])=>`<button type="button" class="${MW.view===v?"on":""}" data-act="mw-view" data-v="${v}">${l}</button>`).join("")}</div>
       <input type="text" id="mwSearch" placeholder="Kitaplığında ara" value="${esc(MW.q)}" autocomplete="off">
@@ -69,6 +73,70 @@ function vMyWords(){
     ${mwWrongHTML()}
     <div id="mwList" class="kw-folds mw-list">${mwListHTML()}</div>`;
 }
+/* ================= Çalışma merkezi =================
+   Neyi çalışacağını sen seçersin: çalışılacaklar / öğrendiklerim / hepsi,
+   istersen yalnız son 7–30 günü ya da tek bir kaynağı.
+   Sonra üç yol var: Türkçesini yazarak çalış (kart), beş şıklı kelime testi,
+   ya da bu kelimelerin geçtiği gerçek ÖSYM soruları (YDS/YDT/YÖKDİL). */
+const mwSrcKey=w=>((w.src||"").trim()||"__");
+const mwRefDate=w=>w.learned&&w.learnedOn?w.learnedOn:mwDate(w);
+function mwScopeLabel(key,mode){
+  const m=mode||MW.scope, s=MW_SCOPE.find(x=>x[0]===m), r=MW_RANGE.find(x=>x[0]===MW.range);
+  const parts=[s?s[1]:"Kelimeler",r&&r[0]!=="all"?r[1]:"",MW.src||key&&key.startsWith("s:")&&key.slice(2)!=="__"?MW.src||key.slice(2):""];
+  return parts.filter(Boolean).join(" · ");
+}
+/* seçime uyan kelimeler: kapsam (todo/learned/all) + zaman aralığı + kaynak */
+function mwSelectWords(key,mode){
+  const m=mode||MW.scope;
+  let ws=words.filter(w=>m==="todo"?!w.learned:m==="learned"?w.learned:true);
+  if(key&&key.startsWith("d:"))ws=ws.filter(w=>mwDate(w)===key.slice(2));
+  else if(key&&key.startsWith("s:"))ws=ws.filter(w=>mwSrcKey(w)===key.slice(2));
+  else{
+    if(MW.range!=="all")ws=ws.filter(w=>daysTo(mwRefDate(w))>=- +MW.range);
+    if(MW.src)ws=ws.filter(w=>mwSrcKey(w)===MW.src);
+  }
+  return ws;
+}
+const mwKeysOf=ws=>[...new Set(ws.map(ownKey))].filter(k=>{const e=entryOf(k);return e&&e.tr&&e.tr!=="—"});
+function mwScopeKeys(){return mwKeysOf(mwSelectWords())}
+function mwExamCount(keys){
+  if(typeof kwExamQs!=="function")return 0;
+  return kwExamQs(keys,60).length;
+}
+/* seçili kelimelerle çalış: mode = cards (yazarak) | quiz (5 şık) | exam (çıkmış soru) */
+function mwRun(mode,key,force){
+  const ws=mwSelectWords(key,force), keys=mwKeysOf(ws);
+  if(!keys.length){toast("Bu seçimde kelime yok");return}
+  const label=mwScopeLabel(key,force), practiced=keys.some(k=>isLearned(k));
+  if(mode==="exam"){kwStartExam(keys,label);return}
+  if(mode==="quiz"){KW.practice=practiced;KW.title=label;kwSessionQuiz(keys);return}
+  kwStartCards(keys,{practice:practiced,title:label});
+}
+function mwHubHTML(all,learned,todo){
+  const srcs=mwSources();
+  const ws=mwSelectWords(), n=ws.length;
+  const seg=(opts,act,cur)=>`<div class="seg" role="group">${opts.map(([v,l])=>`<button type="button" class="${v===cur?"on":""}" data-act="${act}" data-v="${esc(v)}">${l}</button>`).join("")}</div>`;
+  return `<section class="card lift mw-hub">
+    <h3>Çalış ve test et</h3>
+    <p class="sub">Ne çalışacağını sen seç: <b>öğrendiklerini</b> de tazeleyebilirsin. Sonra Türkçesini yazarak çalış, beş şıklı test çöz ya da bu kelimelerin geçtiği <b>gerçek ÖSYM sorularını</b> (YDS · YDT · YÖKDİL) çöz.</p>
+    <div class="mw-hub-bar">
+      ${seg(MW_SCOPE,"mw-scope-set",MW.scope)}
+      ${seg(MW_RANGE,"mw-range-set",MW.range)}
+      <select id="mwSrcSel" aria-label="Kaynak"><option value="">Tüm kaynaklar</option>${srcs.map(s=>`<option value="${esc(s)}" ${MW.src===s?"selected":""}>${esc(s)}</option>`).join("")}</select>
+    </div>
+    <div class="strip kw-strip mw-hub-strip">
+      <div><div class="k">Seçili kelime</div><div class="v">${n}</div><div class="m">${n?(ws.filter(w=>w.learned).length?`${ws.filter(w=>w.learned).length} tanesi öğrenilmiş`:""):"bu seçimde kelime yok"}</div></div>
+      <div><div class="k">Çıkmış soru</div><div class="v" id="mwExamN">…</div><div class="m">${n?`senin kelimelerinin geçtiği ÖSYM soruları`:`—`}</div></div>
+      <div><div class="k">Kitaplık</div><div class="v">${all.length}</div><div class="m">${learned} öğrendin · ${todo} çalışılacak</div></div>
+    </div>
+    <div class="row mw-hub-acts">
+      <button type="button" class="btn primary" data-act="mw-run" data-v="cards" ${n?"":"disabled"}>${svg(I.words,16)} Anlamlarını yazarak çalış</button>
+      <button type="button" class="btn" data-act="mw-run" data-v="quiz" ${n?"":"disabled"}>Kelime testi çöz</button>
+      <button type="button" class="btn" data-act="mw-run" data-v="exam" ${n?"":"disabled"}>Çıkmış soruları çöz</button>
+    </div>
+  </section>`;
+}
+
 function mwRow(w){
   const k=ownKey(w), v=vocab[k];
   return `<div class="mw-row ${w.learned?"done":""}">
@@ -86,9 +154,11 @@ function mwGroup(key,title,sub,body,studyKey){
       ${studyKey?`<button type="button" class="btn sm" data-act="mw-study" data-v="${esc(studyKey)}">Çalış</button>`:""}</summary>
     <div class="st-in">${body}</div></details>`;
 }
-function mwLearnedFold(key,n,inner){
+function mwLearnedFold(key,n,inner,studyKey){
   return `<details class="mw-learned" data-mwopen="${esc(key)}" ${MW.open.has(key)?"open":""}>
-    <summary>Öğrendiklerin <span class="pill ok">${n}</span></summary><div class="mw-learned-in">${inner}</div></details>`;
+    <summary>Öğrendiklerin <span class="pill ok">${n}</span>
+      ${studyKey?`<span class="mw-fold-acts"><button type="button" class="btn sm" data-act="mw-study" data-v="${esc(studyKey)}|learned">Çalış</button><button type="button" class="btn sm ghost" data-act="mw-study" data-v="${esc(studyKey)}|exam">Çıkmış soru</button></span>`:""}</summary>
+    <div class="mw-learned-in">${inner}</div></details>`;
 }
 function mwListHTML(){
   if(!words.length&&!Object.keys(vocab).some(k=>vocab[k].learnedOn))
@@ -104,8 +174,10 @@ function mwListHTML(){
     return Object.keys(by).sort((a,b)=>a==="__"?1:b==="__"?-1:a.localeCompare(b,"tr")).map(s=>{
       const ws=by[s].slice().reverse(), lr=ws.filter(w=>w.learned).length, todo=ws.some(w=>!w.learned);
       const open=ws.filter(w=>!w.learned), done=ws.filter(w=>w.learned);
+      /* "Çalış" yalnız çalışılacak kelime varken; hepsi öğrenildiyse tazeleme için "|learned" */
+      const studyKey=todo?"s:"+s:(done.length?"s:"+s+"|learned":"");
       return mwGroup("s:"+s,s==="__"?"Kaynak yazılmamış":esc(s),`${ws.length} kelime · ${lr} öğrenildi`,
-        (open.length?open.map(mwRow).join(""):`<p class="st-note mw-alldone">Bu kaynaktaki bütün kelimeleri öğrendin.</p>`)+(done.length?mwLearnedFold("L:s:"+s,done.length,done.map(mwRow).join("")):""),todo?"s:"+s:"");
+        (open.length?open.map(mwRow).join(""):`<p class="st-note mw-alldone">Bu kaynaktaki bütün kelimeleri öğrendin.</p>`)+(done.length?mwLearnedFold("L:s:"+s,done.length,done.map(mwRow).join(""),"s:"+s):""),studyKey);
     }).join("");
   }
   /* günlere göre: eklenenler + öğrenilenler */
@@ -124,11 +196,43 @@ function mwListHTML(){
     const inner=`${done.map(mwRow).join("")}${other.length||d.yds.length?`<p class="mw-sub">Bu gün öğrendiğin diğer kelimeler</p><div class="kw-gloss">${other.map(w=>`<div class="kw-gl known"><b>${esc(w.en)}</b><span>${esc(w.tr||"")}</span></div>`).join("")}${d.yds.map(e=>`<button type="button" class="kw-gl known" data-kw="${esc(e.w)}"><b>${esc(e.w)}</b><span>${esc(e.tr)}</span></button>`).join("")}</div>`:""}`;
     const nDone=done.length+other.length+d.yds.length;
     const body=`${todo.length?todo.map(mwRow).join(""):d.add.length?`<p class="st-note mw-alldone">Bu günün bütün kelimelerini öğrendin.</p>`:""}
-      ${nDone?mwLearnedFold("L:d:"+iso,nDone,inner):""}`;
-    return mwGroup("d:"+iso,mwDayName(iso),[d.add.length?`${d.add.length} kelime eklendi`:"",ln?`${ln} kelime öğrenildi`:""].filter(Boolean).join(" · "),body,d.add.some(w=>!w.learned)?"d:"+iso:"")};
+      ${nDone?mwLearnedFold("L:d:"+iso,nDone,inner,"d:"+iso):""}`;
+    /* çalışılacak varsa normal "Çalış", yoksa öğrendikleri tazelemek için "|learned" */
+    const hasTodo=d.add.some(w=>!w.learned);
+    const studyKey=hasTodo?"d:"+iso:(d.add.length||d.learn.length||d.yds.length?"d:"+iso+"|learned":"");
+    return mwGroup("d:"+iso,mwDayName(iso),[d.add.length?`${d.add.length} kelime eklendi`:"",ln?`${ln} kelime öğrenildi`:""].filter(Boolean).join(" · "),body,studyKey);};
   return recent.map(grp).join("")+(older.length?`<details class="st-sub kw-fold mw-older" data-mwopen="older" ${MW.open.has("older")?"open":""}><summary><span class="st-nm"><b>Daha eski günler</b><small>${older.length} gün</small></span></summary><div class="st-in">${older.map(grp).join("")}</div></details>`:"");
 }
 function mwRefresh(){const el=document.getElementById("mwList");if(el)el.innerHTML=mwListHTML()}
+/* Çıkmış soru sayacı. Soru bankasının taranması yarım saniye sürdüğü için sonuç
+   seçime göre saklanır: aynı seçime ikinci gelişte sayaç anında dolar.
+   Tarama ilk kez gerektiğinde yapılır; kalan kelimeler için arka planda ısıtılır. */
+const MW_EXAM_CACHE_KEY="mwexam";
+let _mwExamCache=null;
+const mwExamCache=()=>_mwExamCache||(_mwExamCache=LS.get(MW_EXAM_CACHE_KEY,{}));
+function mwExamSig(keys){return keys.slice().sort().join("|")}
+function mwExamN(keys){
+  if(!keys.length)return 0;
+  const sig=mwExamSig(keys), cache=mwExamCache();
+  if(cache[sig]!==undefined)return cache[sig];
+  const n=mwExamCount(keys);
+  cache[sig]=n;
+  const ks=Object.keys(cache);
+  if(ks.length>120)ks.slice(0,40).forEach(k=>delete cache[k]);
+  LS.set(MW_EXAM_CACHE_KEY,cache);
+  return n;
+}
+function mwTick(){
+  const el=document.getElementById("mwExamN");if(!el)return;
+  const keys=mwScopeKeys();
+  const btn=document.querySelector('[data-act="mw-run"][data-v="exam"]');
+  if(!keys.length){el.textContent="0";if(btn)btn.disabled=true;return}
+  if(btn)btn.disabled=false;
+  if(typeof kwWarmIndex==="function")kwWarmIndex();   /* başka seçimler için taramayı ısıt */
+  const n=mwExamN(keys);                             /* seçim ilk kezse burada hesaplanır */
+  el.innerHTML=n?`${n}<small> soru</small>`:"0";
+  if(btn)btn.title=n?"":"Bu kelimeler sitenin sorularında geçmiyor";
+}
 
 /* ---- ekleme ---- */
 let _mwTimer=null, _mwReq=0;
@@ -160,12 +264,13 @@ function mwAdd(){
   render();toast(`“${en}” eklendi`);
   const e2=document.getElementById("mwEn");if(e2)e2.focus();
 }
+/* Gruptaki "Çalış": anahtar "d:<gün>" ya da "s:<kaynak>", sonuna "|learned" ya da "|exam" eklenebilir.
+   "|learned" → o gruptaki öğrendiklerin tazeleme çalışması · "|exam" → çıkmış soru testi */
 function mwStudy(key){
-  let ws=words.filter(w=>!w.learned);
-  if(key.startsWith("d:"))ws=ws.filter(w=>mwDate(w)===key.slice(2));
-  else if(key.startsWith("s:")){const s=key.slice(2);ws=ws.filter(w=>((w.src||"").trim()||"__")===s)}
-  if(!ws.length){toast("Çalışılacak kelime yok");return}
-  kwStartCards(ws.map(ownKey));
+  const ix=(key||"").lastIndexOf("|");
+  const mode=ix>-1?key.slice(ix+1):"", k=ix>-1?key.slice(0,ix):key;
+  if(mode==="exam"){mwRun("exam",k);return}
+  mwRun("cards",k,mode==="learned"?"learned":undefined);
 }
 
 /* ================= Yazarak test =================
@@ -216,7 +321,11 @@ document.addEventListener("click",e=>{
     case "mw-add": mwAdd(); break;
     case "mw-view": MW.view=v; render(); break;
     case "mw-study": e.preventDefault(); mwStudy(v); break;
-    case "mw-wrong-study": e.preventDefault(); {const ks=mwWrongList();if(ks.length)kwStartCards(ks)} break;
+    case "mw-scope": MW.scope=v;render();mwTick(); break;
+    case "mw-scope-set": MW.scope=v;render();mwTick(); break;
+    case "mw-range-set": MW.range=v;render();mwTick(); break;
+    case "mw-run": mwRun(v); break;
+    case "mw-wrong-study": e.preventDefault(); {const ks=mwWrongList();if(ks.length)kwStartCards(ks,{title:"Yanlış yazdıkların"})} break;
     case "mw-del": {const w=words.find(x=>String(x.id)===v);
       if(w&&confirm(`“${w.en}” kitaplığından silinsin mi?`)){words=words.filter(x=>x!==w);if(!w.ref)delete vocab[ownKey(w)];save();mwRefresh();toast("Silindi")}} break;
   }
@@ -225,6 +334,9 @@ document.addEventListener("input",e=>{
   if(e.target.id==="mwEn"){MW.trDirty=false;mwAutoTr()}
   else if(e.target.id==="mwTr"){MW.trDirty=!!e.target.value.trim()}
   else if(e.target.id==="mwSearch"){MW.q=e.target.value;mwRefresh()}
+});
+document.addEventListener("change",e=>{
+  if(e.target.id==="mwSrcSel"){MW.src=e.target.value;render();mwTick()}
 });
 document.addEventListener("keydown",e=>{
   if(e.key==="Enter"&&e.target&&["mwEn","mwTr","mwSrc"].includes(e.target.id)){e.preventDefault();mwAdd()}

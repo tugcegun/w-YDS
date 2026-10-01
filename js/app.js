@@ -96,6 +96,7 @@ function srcLabel(src){ if(!src) return "";
   if(src.startsWith("rev:")) return "Tekrar testi · "+subTitle(src.split(":")[1]);
   if(src.startsWith("mini:")) return "Mini test · "+subTitle(src.split(":")[1]);
   if(src.startsWith("para:")) return "Paragraf analizi";
+  if(src.startsWith("kwq:")) return "Çıkmış soru · "+src.slice(4);
   if(src.startsWith("wrong:")) return "Yanlış testi · "+subTitle(src.slice(6));
   return src; }
 const passageOf=q=>q.passage||(q.pid&&PASSAGES[q.pid])||"";
@@ -139,7 +140,7 @@ const CAL={y:null,m:null,sel:null,form:false};
 const BK={kind:"all",sub:"all",form:null,edit:null,open:new Set()};
 function navOwner(){
   if(current==="topic") return "topics";
-  if(current==="test"||current==="result"){const s=T&&T.src||"";return s.startsWith("para:")?"words":s.startsWith("topic:")?"topics":s.startsWith("week:")?"weekly":s==="personal"?"personal":s==="book"||s.startsWith("review:")?"book":"mistakes"}
+  if(current==="test"||current==="result"){const s=T&&T.src||"";return s.startsWith("para:")?"words":s.startsWith("kwq:")?"mywords":s.startsWith("topic:")?"topics":s.startsWith("week:")?"weekly":s==="personal"?"personal":s==="book"||s.startsWith("review:")?"book":"mistakes"}
   return current;
 }
 function openCount(){return Object.values(mem.mistakes).filter(m=>m.status==="open"&&qById(m.id)).length}
