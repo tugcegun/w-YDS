@@ -317,9 +317,15 @@ function kwBlankHTML(i){
       :it.st==="shown"?`<div class="feedback ok"><b>Cevap açıldı.</b>${q.e?`<p>${esc(q.e)}</p>`:""}</div>`:""}`;
 }
 function kwPopBlank(anchor,i){kwPop(anchor,kwBlankHTML(i));const p=document.getElementById("kwPop");if(p)p.dataset.pb=i}
+/* kutu iki parçadan oluşur: kaydırılabilen gövde (kw-pop-in) ve sabit alt şerit
+   (düğmeler). Kutu ekrana sığmasa bile düğmelere erişmek için aşağı kaydırma gerekmez. */
+function kwPopSet(p,html){
+  const parts=String(html).split(/(<div class="kw-pop-act"[\s\S]*$)/);
+  p.innerHTML=`<button type="button" class="kw-pop-x" data-act="kw-pop-close" aria-label="Kapat">${svg(I.x,14)}</button><div class="kw-pop-in">${parts[0]}</div>${parts[1]||""}`;
+}
 function kwPopRefresh(i){const p=document.getElementById("kwPop");if(!p||p.hidden)return;
   p.dataset.pb=i;
-  p.innerHTML=`<button type="button" class="kw-pop-x" data-act="kw-pop-close" aria-label="Kapat">${svg(I.x,14)}</button>`+kwBlankHTML(i);
+  kwPopSet(p,kwBlankHTML(i));
   kwPopFit(p);p._y=scrollY}
 /* boşluk durumu değişince metin yeniden işaretlenir; çeviri açık kalır, değişmeyen cümleler yeniden çevrilmez */
 function kwRefill(scroll){
@@ -812,7 +818,7 @@ function kwPop(anchor,html){
   let p=document.getElementById("kwPop");
   if(!p){p=document.createElement("div");p.id="kwPop";p.className="kw-pop";p.setAttribute("role","dialog");document.body.appendChild(p)}
   p.dataset.pb="";
-  p.innerHTML=`<button type="button" class="kw-pop-x" data-act="kw-pop-close" aria-label="Kapat">${svg(I.x,14)}</button>`+html;
+  kwPopSet(p,html);
   clearTimeout(p._t);p.hidden=false;p.classList.remove("show","out");p._y=scrollY;
   const r=anchor.getBoundingClientRect(), w=Math.min(360,innerWidth-24);
   p.style.width=w+"px";
@@ -841,17 +847,22 @@ window.addEventListener("scroll",()=>{const p=document.getElementById("kwPop");
 document.addEventListener("touchstart",e=>{const p=e.target.closest&&e.target.closest("#kwPop");if(p)p._touch=Date.now()},{passive:true});
 document.addEventListener("touchmove",e=>{const p=e.target.closest&&e.target.closest("#kwPop");if(p)p._touch=Date.now()},{passive:true});
 function kwPopWord(anchor,key){
-  const e=KW_BY[key];if(!e)return;const st=kwStatus(key), v=vOf(key);
+  /* entryOf: YDS listesindeki kelimeler de kendi Kelimelerim'e eklediklerin de bulunur.
+     Eskiden yalniz KW_BY'ye bakiliyordu; bu yuzden kendi ekledigin kelimelere
+     basilinca kutu hic acilmadan fonksiyon sessizce batiyordu. */
+  const e=entryOf(key);if(!e)return;const st=kwStatus(key), v=vOf(key);
   /* Öğrenilmiş kelime: "öğrendim" işaretini geri alıp yeniden calisilacaklara alma yolu sunulur.
      Yoksa kelime "ogrenildi" diye isaretlenip bir daha calisilacaklarda gorunmez ve
      geri almak mumkun olmazdi. */
   const undo=v&&v.learnedOn
     ?`<button type="button" class="btn sm" data-act="kw-unlearn" data-v="${esc(key)}">Öğrendim işaretini kaldır</button>`
     :"";
-  kwPop(anchor,`<div class="kw-pop-h"><b>${esc(e.w)}</b> <span class="muted">${POS_TR[e.p]||""}</span> <span class="kw-f">${stars(e.f)}</span></div>
+  const own=!!e.own;
+  kwPop(anchor,`<div class="kw-pop-h"><b>${esc(e.w)}</b> <span class="muted">${POS_TR[e.p]||""}</span>${own?`<span class="chip">Kelimelerim</span>`:`<span class="kw-f">${stars(e.f)}</span>`}</div>
     <div class="kw-card-tr sm">${esc(e.tr)}</div>${kwDetail(e)}
     <div class="kw-pop-act"><span class="muted">${STATUS_TR[st]}</span>
-      <button type="button" class="btn sm primary" data-act="kw-flag" data-v="${esc(key)}">Bugünün kelimelerine ekle</button>${undo}</div>`);
+      <div class="kw-pop-btns">
+        <button type="button" class="btn sm primary" data-act="kw-flag" data-v="${esc(key)}">Bugünün kelimelerine ekle</button>${undo}</div></div>`);
 }
 /* "Öğrendim" işaretini geri al: kelime tekrar çalışılacaklara döner ve kutusu düşer */
 function kwUnlearn(key){

@@ -142,18 +142,16 @@ function mwHubHTML(all,learned,todo){
 }
 
 function mwRow(w){
-  const k=ownKey(w), v=vocab[k], inList=!!KW_BY[k];
-  /* Öğrenilmiş satırda iki yol: YDS listesindeki kelimelerde anlam kutusu açılır
-     (oradan "Öğrendim işaretini kaldır" yapılır), her kelimede de doğrudan
-     "Yeniden çalış" düğmesi vardır — hâlâ öğrendiğini düşünüyorsan geri alabilirsin. */
+  const k=ownKey(w), v=vocab[k];
+  /* Öğrenilmiş satırda "Yeniden çalış" düğmesi vardır (işareti geri alır).
+     Kelimenin kendisi ve Türkçesi tıklanabilir: anlam kutusu açılır. */
   const study=w.learned
-    ?`${inList?`<button type="button" class="icon-btn" data-kw="${esc(k)}" aria-label="${esc(w.en)} anlamını aç" title="Anlamını aç">${svg(I.words,15)}</button>`:""}
-       <button type="button" class="btn sm" data-act="mw-restudy" data-v="${w.id}" title="Öğrendim işaretini kaldırıp yeniden çalışılacaklara ekle">Yeniden çalış</button>`
+    ?`<button type="button" class="btn sm" data-act="mw-restudy" data-v="${w.id}" title="Öğrendim işaretini kaldırıp yeniden çalışılacaklara ekle">Yeniden çalış</button>`
     :"";
   return `<div class="mw-row ${w.learned?"done":""}">
     <input type="checkbox" data-mwl="${w.id}" ${w.learned?"checked":""} aria-label="${esc(w.en)} öğrenildi" title="Öğrendim">
-    <span class="mw-en">${esc(w.en)}</span>
-    <span class="mw-tr">${esc(w.tr||"—")}${(()=>{const s=w.ref&&KW_BY[w.ref]?KW_BY[w.ref].s:w.s;return s&&s.length?`<small class="mw-syn">≈ ${s.slice(0,3).map(esc).join(", ")}</small>`:""})()}</span>
+    <button type="button" class="mw-word" data-kw="${esc(k)}" title="Anlamını aç ve seçenekleri gör">${esc(w.en)}</button>
+    <button type="button" class="mw-tr" data-kw="${esc(k)}" title="Anlamını aç">${esc(w.tr||"—")}${(()=>{const s=w.ref&&KW_BY[w.ref]?KW_BY[w.ref].s:w.s;return s&&s.length?`<small class="mw-syn">≈ ${s.slice(0,3).map(esc).join(", ")}</small>`:""})()}</button>
     <span class="mw-meta">${w.src?`<span class="chip">${esc(w.src)}</span>`:""}${w.learned?`<span class="pill ok">öğrenildi${w.learnedOn?" · "+fmtDate(w.learnedOn,true):""}</span>`:v&&v.last?`<span class="pill plain">tekrar ${fmtDate(v.due,true)}</span>`:""}</span>
     ${study}
     <button type="button" class="icon-btn" data-act="mw-del" data-v="${w.id}" aria-label="${esc(w.en)} sil">${svg(I.trash,15)}</button>

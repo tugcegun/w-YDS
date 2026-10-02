@@ -770,13 +770,16 @@ button.kw-chip{cursor:pointer;font-family:inherit}
 .kw-nav .btn{min-width:170px}
 .kw-nav kbd,.btn kbd{font-family:var(--sans);font-size:11px;border:1px solid currentColor;opacity:.6;padding:0 4px;margin-left:4px}
 /* baloncuk */
-.kw-pop{position:fixed;z-index:60;background:var(--surface);border:1px solid var(--line-2);box-shadow:var(--shadow);padding:16px 18px 12px;max-height:70vh;overflow:auto;opacity:0;transform:translateY(4px);transition:opacity .25s ease,transform .25s ease}
+.kw-pop{position:fixed;z-index:60;background:var(--surface);border:1px solid var(--line-2);box-shadow:var(--shadow);padding:16px 18px 12px;max-height:70vh;display:flex;flex-direction:column;opacity:0;transform:translateY(4px);transition:opacity .25s ease,transform .25s ease}
 .kw-pop.show{opacity:1;transform:none}
-.kw-pop-x{position:absolute;top:8px;right:8px;border:0;background:none;color:var(--ink-3);padding:4px;cursor:pointer}
-.kw-pop-h{font-size:19px;margin-bottom:4px;padding-right:22px}
+/* kutu taşarsa yalnız içerik kayar; başlık ve düğmeler görünür kalır, aşağı inmek gerekmez */
+.kw-pop-in{overflow:auto;min-height:0}
+.kw-pop-x{position:absolute;top:8px;right:8px;border:0;background:none;color:var(--ink-3);padding:4px;cursor:pointer;z-index:2}
+.kw-pop-h{font-size:19px;margin-bottom:4px;padding-right:22px;flex:0 0 auto}
 .kw-pop-h b{font-family:var(--display)}
 .kw-pop .kw-lbl{min-width:0;display:block;margin-bottom:3px}
-.kw-pop-act{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid var(--line);padding-top:10px;margin-top:4px;font-size:12.5px}
+.kw-pop-act{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid var(--line);padding-top:10px;margin-top:4px;font-size:12.5px;flex:0 0 auto;flex-wrap:wrap;background:var(--surface)}
+.kw-pop-btns{display:flex;gap:6px;flex-wrap:wrap}
 .kw-pop-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
 .kw-sig-list{font-size:13px;color:var(--ink-2);line-height:1.6;margin:0}
 @media (max-width:760px){
@@ -832,7 +835,12 @@ button.kw-chip{cursor:pointer;font-family:inherit}
 .mw-row{display:grid;grid-template-columns:22px minmax(0,180px) minmax(0,1fr) auto auto 30px;gap:12px;align-items:center;padding:9px 2px;border-top:1px solid var(--line);transition:background .2s}
 .mw-row:hover{background:var(--sunk)}
 .mw-en{font-family:var(--display);font-size:16.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.mw-tr{color:var(--ink-2);font-size:14px}
+/* kelimenin kendisi ve Türkçesi dokunulabilir: anlam kutusu açılır */
+.mw-row .mw-word,.mw-row .mw-tr{border:0;background:none;padding:0;font:inherit;text-align:left;cursor:pointer;min-width:0;border-bottom:1px dashed transparent;transition:border-color .2s}
+.mw-row .mw-word{font-family:var(--display);font-size:16.5px;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mw-row .mw-tr{color:var(--ink-2);font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mw-row .mw-word:hover,.mw-row .mw-tr:hover{border-bottom-color:var(--brand-ink)}
+.mw-row.done .mw-word{color:var(--ink-3)}
 .mw-meta{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .mw-row.done .mw-en{color:var(--ink-3)}
 .mw-sub{font-size:12px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em;margin:10px 0 4px}
