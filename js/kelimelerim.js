@@ -104,13 +104,17 @@ function mwExamCount(keys){
   return kwExamQs(keys,60).length;
 }
 /* seçili kelimelerle çalış: mode = cards (yazarak) | quiz (5 şık) | exam (çıkmış soru) */
+/* Tazeleme koruması kelime bazlıdır. Karışık seçimde (Hepsi) öğrenilmemiş bir kelime,
+   çalışmanın içinde öğrenilmişlerle birlikte olsa bile normal kurallara göre işler:
+   yanlışta kutusu düşer ve ancak üst üste doğru yazarak öğrendiklerine geçer.
+   Oturumdaki öğrenilmiş kelimelerin kümesi KW.taze içinde taşınır. */
 function mwRun(mode,key,force){
   const ws=mwSelectWords(key,force), keys=mwKeysOf(ws);
   if(!keys.length){toast("Bu seçimde kelime yok");return}
-  const label=mwScopeLabel(key,force), practiced=keys.some(k=>isLearned(k));
+  const label=mwScopeLabel(key,force), taze=new Set(keys.filter(isLearned));
   if(mode==="exam"){kwStartExam(keys,label);return}
-  if(mode==="quiz"){KW.practice=practiced;KW.title=label;kwSessionQuiz(keys);return}
-  kwStartCards(keys,{practice:practiced,title:label});
+  if(mode==="quiz"){KW.taze=taze;KW.title=label;kwSessionQuiz(keys);return}
+  kwStartCards(keys,{taze,title:label});
 }
 function mwHubHTML(all,learned,todo){
   const srcs=mwSources();

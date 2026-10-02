@@ -57,9 +57,11 @@ function entryOf(key){
 function kwMark(key,ok,secs){
   const t=todayISO(), v=vocab[key]||(vocab[key]={b:0,due:t,first:t,ok:0,no:0});
   const wasNew=!v.last;
-  /* KW.practice: öğrenilmiş kelimeler isteğe bağlı tazeleme çalışması. Yanlış bilinse bile
-     kutu düşmez, "öğrenildi" işareti korunur — yoksa günü gelen tekrarı beklerdi. */
-  const keep=KW.practice&&v.b>=KW_LEARNED;
+  /* Tazeleme (KW.taze): kelime bu oturumda "öğrendiklerimi tazele" kapsamından geldiyse
+     yanlış bilinse bile kutu düşmez, "öğrenildi" işareti korunur. Yalnız oturumdaki
+     öğrenilmiş kelimeler korunur; öğrenilmemiş bir kelime (Hepsi kapsamında olsa bile)
+     normal kurallara göre işler: yanlışta kutusu düşer, öğrendiklerine kendiliğinden geçmez. */
+  const keep=!!(KW.taze&&KW.taze.has(key))&&v.b>=KW_LEARNED;
   if(ok){v.b=wasNew?2:Math.min(6,v.b+1);v.ok++}else{if(!keep)v.b=1;v.no++}
   v.due=addDays(t,ok||keep?BOX_DAYS[v.b]:1);v.last=t;
   /* öğrenildiği gün Kelimelerim sayfasında gün gün görünür */
@@ -94,7 +96,7 @@ function kwQueue(){
 /* ================= Sayfa ================= */
 const KW={mode:null,deck:[],i:0,show:false,ok:0,no:0,re:new Set(),t0:0,missed:[],
   quiz:null,q:"",filter:"all",text:"",pid:"",res:null,fill:null,
-  practice:false,title:"",src:""};
+  taze:null,title:"",src:""};
 
 function vKelime(){
   if(KW.mode==="cards") return kwCardsView();
@@ -562,14 +564,14 @@ function kwCorpusHTML(){
 }
 
 /* ================= Kart çalışması ================= */
-/* opts: {title, practice} — practice: öğrenilmiş kelimeleri tazeleme çalışması;
-   bu modda yanlış bilmek kutu düşürmez, "öğrenildi" işareti korunur. */
+/* opts: {title, taze:Set} — taze: bu oturumda tazelenen öğrenilmiş kelimeler;
+   onlar yanlış bilinse bile kutu düşürmez, "öğrenildi" işareti korunur. */
 function kwStartCards(only,opts={}){
   const {due,news}=kwQueue();
   const deck=only&&only.length?only.slice():due.concat(news);
   if(!deck.length){toast("Çalışılacak kelime yok");return}
   Object.assign(KW,{mode:"cards",deck,i:0,cur:null,ok:0,no:0,re:new Set(),t0:Date.now(),missed:[],
-    nNew:news.length,practice:!!opts.practice,title:opts.title||"Bugünün kelimeleri",src:opts.src||""});
+    nNew:news.length,taze:opts.taze||null,title:opts.title||"Bugünün kelimeleri",src:opts.src||""});
   render();window.scrollTo(0,0);kwAnsFocus();
 }
 function kwCardsView(){
@@ -588,7 +590,7 @@ function kwCardsView(){
     <div class="kw-prog"><i style="width:${Math.round(KW.i/total*100)}%"></i></div>
     <article class="sheet kw-card">
       <div class="kw-card-top">${isNew?`<span class="chip">Yeni</span>`:`<span class="chip">Tekrar</span>`}
-        ${KW.practice?`<span class="chip">Tazeleme</span>`:""}
+        ${(KW.taze&&KW.taze.has(key))?`<span class="chip">Tazeleme</span>`:""}
         ${e.p?`<span class="chip">${POS_TR[e.p]}</span>`:""}${e.own?`<span class="chip">Kelimelerim</span>`:`<span class="kw-f" title="${FREQ_TR[e.f||1]}">${stars(e.f)}</span>`}</div>
       <div class="kw-card-w">${esc(e.w)}</div>
       <div class="mw-ans"><input type="text" id="kwAns" placeholder="Türkçesini yaz, Enter'a bas" autocomplete="off" ${c?`value="${esc(c.typed)}" disabled`:""}></div>
@@ -626,7 +628,12 @@ function kwCardFix(){
   const key=KW.deck[KW.i], v=vocab[key];
   c.fixed=true;KW.ok++;KW.no=Math.max(0,KW.no-1);KW.missed=KW.missed.filter(k=>k!==key);
   if(c.requeued){const j=KW.deck.lastIndexOf(key);if(j>KW.i)KW.deck.splice(j,1);KW.re.delete(key)}
-  if(v){v.b=Math.min(6,Math.max(2,(v.b||1)+1));v.due=addDays(todayISO(),BOX_DAYS[v.b]);v.no=Math.max(0,(v.no||1)-1);v.ok=(v.ok||0)+1;
+  /* kutu yükselmesi tazeleme kelimesinde olmaz: tazeleme yalnız hatırlamayı yoklar,
+     öğrenilmiş kelimenin ilerlemesi olduğu gibi kalır. Öğrenilmemiş kelimelerin
+     ilerlemesi ise buradaki yazma çalışmasına kalır. */
+  const keep=!!(KW.taze&&KW.taze.has(key))&&v&&v.b>=KW_LEARNED;
+  if(v){if(!keep){v.b=Math.min(6,Math.max(2,(v.b||1)+1));v.due=addDays(todayISO(),BOX_DAYS[v.b])}
+    v.no=Math.max(0,(v.no||1)-1);v.ok=(v.ok||0)+1;
     if(v.wr&&v.wr.length)v.wr.pop();v.wn=Math.max(0,(v.wn||1)-1);save()}
   render();const n=document.getElementById("kwNext");n&&n.focus({preventScroll:true});
 }
@@ -674,7 +681,7 @@ function kwMakeQ(e,type){
   return null;
 }
 function kwStartQuiz(){
-  KW.practice=false;KW.title="";
+  KW.taze=null;KW.title="";
   const t=todayISO();
   const seen=Object.keys(vocab).filter(k=>KW_BY[k]&&vocab[k].last);
   /* önce zorlandıkların ve yeni öğrendiklerin, sonra rastgele; az çalıştıysan çok sık çıkanlarla tamamlanır */
@@ -945,7 +952,7 @@ document.addEventListener("click",e=>{
     case "kw-cards": kwStartCards(); break;
     case "kw-quiz": kwStartQuiz(); break;
     case "kw-quiz-session": kwSessionQuiz(KW.quiz&&KW.quiz.session&&KW.mode==="quiz"?KW.quiz.session:KW.deck); break;
-    case "kw-exit": KW.mode=null;KW.quiz=null;KW.practice=false;KW.title="";render();window.scrollTo(0,0); break;
+    case "kw-exit": KW.mode=null;KW.quiz=null;KW.taze=null;KW.title="";render();window.scrollTo(0,0); break;
     case "kw-check": kwCardCheck(false); break;
     case "kw-skip": kwCardCheck(true); break;
     case "kw-fix": kwCardFix(); break;
