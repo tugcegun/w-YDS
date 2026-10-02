@@ -829,7 +829,7 @@ button.kw-chip{cursor:pointer;font-family:inherit}
 .mw-bar input{flex:1 1 220px;width:auto}
 .mw-list{margin-top:12px}
 .mw-list .kw-fold>summary .btn{flex:0 0 auto}
-.mw-row{display:grid;grid-template-columns:22px minmax(0,180px) minmax(0,1fr) auto 30px;gap:12px;align-items:center;padding:9px 2px;border-top:1px solid var(--line);transition:background .2s}
+.mw-row{display:grid;grid-template-columns:22px minmax(0,180px) minmax(0,1fr) auto auto 30px;gap:12px;align-items:center;padding:9px 2px;border-top:1px solid var(--line);transition:background .2s}
 .mw-row:hover{background:var(--sunk)}
 .mw-en{font-family:var(--display);font-size:16.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mw-tr{color:var(--ink-2);font-size:14px}

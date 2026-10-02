@@ -74,7 +74,11 @@ function kwMark(key,ok,secs){
 /* bugün çalışılacaklara al; listedeki bir kelimeyse Kelimelerim sayfasına da eklenir */
 function kwFlag(key,src){
   const t=todayISO(), v=vocab[key]||(vocab[key]={b:0,due:t,first:t,ok:0,no:0});
-  v.b=Math.min(v.b,1);v.due=t;v.mw=true;
+  /* Zaten öğrenilmiş bir kelime bugüne eklenirse kutusu düşer ve "öğrenildi" işareti
+     kalkar; kelime gerçekten çalışılacaklara döner. Yoksa "çalış" denildiği hâlde
+     çalışılacaklarda görünmez, yani hiç çalışılmamış gibi dururdu. */
+  v.b=Math.min(v.b,1);v.due=t;v.mw=true;delete v.learnedOn;
+  {const w=words.find(x=>ownKey(x)===key);if(w){w.learned=false;w.learnedOn=null}}
   if(KW_BY[key]&&!words.some(x=>ownKey(x)===key))words.push({id:Date.now()+Math.floor(Math.random()*1000),en:key,tr:KW_BY[key].tr,learned:false,date:t,src:src||"Kelime paneli",ref:key});
   save();
 }
@@ -837,10 +841,25 @@ window.addEventListener("scroll",()=>{const p=document.getElementById("kwPop");
 document.addEventListener("touchstart",e=>{const p=e.target.closest&&e.target.closest("#kwPop");if(p)p._touch=Date.now()},{passive:true});
 document.addEventListener("touchmove",e=>{const p=e.target.closest&&e.target.closest("#kwPop");if(p)p._touch=Date.now()},{passive:true});
 function kwPopWord(anchor,key){
-  const e=KW_BY[key];if(!e)return;const st=kwStatus(key);
+  const e=KW_BY[key];if(!e)return;const st=kwStatus(key), v=vOf(key);
+  /* Öğrenilmiş kelime: "öğrendim" işaretini geri alıp yeniden calisilacaklara alma yolu sunulur.
+     Yoksa kelime "ogrenildi" diye isaretlenip bir daha calisilacaklarda gorunmez ve
+     geri almak mumkun olmazdi. */
+  const undo=v&&v.learnedOn
+    ?`<button type="button" class="btn sm" data-act="kw-unlearn" data-v="${esc(key)}">Öğrendim işaretini kaldır</button>`
+    :"";
   kwPop(anchor,`<div class="kw-pop-h"><b>${esc(e.w)}</b> <span class="muted">${POS_TR[e.p]||""}</span> <span class="kw-f">${stars(e.f)}</span></div>
     <div class="kw-card-tr sm">${esc(e.tr)}</div>${kwDetail(e)}
-    <div class="kw-pop-act"><span class="muted">${STATUS_TR[st]}</span><button type="button" class="btn sm primary" data-act="kw-flag" data-v="${esc(key)}">Bugünün kelimelerine ekle</button></div>`);
+    <div class="kw-pop-act"><span class="muted">${STATUS_TR[st]}</span>
+      <button type="button" class="btn sm primary" data-act="kw-flag" data-v="${esc(key)}">Bugünün kelimelerine ekle</button>${undo}</div>`);
+}
+/* "Öğrendim" işaretini geri al: kelime tekrar çalışılacaklara döner ve kutusu düşer */
+function kwUnlearn(key){
+  const v=vocab[key];if(!v)return;
+  v.b=Math.min(v.b,KW_LEARNED-1);v.due=todayISO();delete v.learnedOn;
+  {const w=words.find(x=>ownKey(x)===key);if(w){w.learned=false;w.learnedOn=null}}
+  kwPopClose();save();if(KW.mode!=="cards"&&KW.mode!=="quiz")render();
+  toast(`“${(entryOf(key)||{}).w||key}” yeniden çalışılacaklara döndü`);
 }
 function kwPopUnknown(anchor,w){
   const own=words.find(x=>x.en.toLowerCase()===w), tr=SOZLUK[w]||"";
@@ -960,6 +979,7 @@ document.addEventListener("click",e=>{
     case "kw-opt": kwQuizAnswer(+v); break;
     case "kw-next": if(KW.quiz&&KW.quiz.ans[KW.quiz.i]!==null){KW.quiz.i++;render();window.scrollTo(0,0)} break;
     case "kw-flag": kwFlag(v,"Kelime paneli");toast(`“${v}” Kelimelerim sayfana ve bugünün kelimelerine eklendi`);kwPopClose();if(!KW.mode)render(); break;
+    case "kw-unlearn": kwUnlearn(v); break;
     case "kw-flag-all": {const ks=v.split("|");ks.forEach(x=>kwFlag(x,"Paragraf analizi"));toast(`${ks.length} kelime Kelimelerim sayfana ve bugünün kelimelerine eklendi`);
       const el=document.getElementById("kwRes");if(el&&KW.res){el.classList.add("same");el.innerHTML=kwResHTML(KW.res);const tl=document.querySelector(".kw-sents");if(KW.res.trOn&&tl)tl.classList.add("tr-on")}else render()} break;
     case "kw-pop-close": kwPopClose(); break;
