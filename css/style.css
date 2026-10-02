@@ -670,7 +670,11 @@ button.cal-c.sel:hover{box-shadow:inset 0 0 0 2px var(--brand-ink)}
 
 /* ================= Kelime paneli ================= */
 @keyframes kwUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.kw-today,.kw-folds,.kw-run .sheet,.kw-res{animation:kwUp .45s ease both}
+/* Animasyon sırasında içerik gizli kalmasın: fill-mode "both" yerine yalnız
+   opacity animasyonu kullanılır, bitince normal akışa döner. Tarayıcı animasyonu
+   desteklemiyorsa da içerik görünür kalır. */
+@media (prefers-reduced-motion:no-preference){.kw-today,.kw-folds,.kw-res,.mw-add,.mw-list,.mw-hub,.kw-expl,.mw-learned-in{will-change:auto}}
+.kw-today,.kw-folds,.kw-run .sheet,.kw-res{animation:kwUp .45s ease}
 .kw-folds{animation-delay:.08s;margin-top:18px;background:var(--surface);border:1px solid var(--line);padding:4px 22px}
 .kw-folds>.kw-fold:first-child{border-top:0}
 .kw-fold>summary .st-nm b{font-size:16px}
@@ -800,7 +804,7 @@ button.kw-chip{cursor:pointer;font-family:inherit}
 .kw-h-row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .kw-h-row h4{font-size:15px;margin:0}
 .kw-trl{display:none;margin-top:6px;padding:6px 10px;font-size:14.5px;line-height:1.55;color:var(--ink-2);background:var(--sunk);border-left:3px solid var(--brand-ink)}
-.tr-on .kw-trl{display:block;animation:kwUp .35s ease both}
+.tr-on .kw-trl{display:block}
 .kw-gl.kw-x{cursor:pointer}
 .kw-blank{display:inline-flex;align-items:center;gap:4px;font:inherit;font-weight:600;color:var(--brand-ink);background:var(--brand-soft);border:1px dashed var(--brand-ink);padding:0 8px;margin:0 2px;cursor:pointer;transition:background .2s,transform .15s;line-height:1.5}
 .kw-blank span{display:inline-block;min-width:3.5em;border-bottom:2px solid currentColor;font-size:12px;font-weight:600;text-align:center;opacity:.8}
@@ -823,8 +827,12 @@ button.kw-chip{cursor:pointer;font-family:inherit}
 .kw-pop .feedback{margin-top:10px;padding:10px 12px;font-size:13.5px}
 .kw-pop .feedback p{margin:4px 0 0}
 .kw-pop.out{opacity:0;transform:translateY(6px);transition:opacity .45s ease,transform .45s ease}
-/* ================= Kelimelerim ================= */
-.mw-add,.mw-list{animation:kwUp .45s ease both}
+/* ================= Kelimelerim =================
+   Giriş animasyonu YALNIZCA sayfa ilk çizildiğinde oynar. `both` kullansaydık
+   her innerHTML yenilemesinde animasyon başa döner, içerik opacity:0'da kalıp
+   saydamlaşırdı. O yüzden fill-mode yok ve animasyon .same (yeniden çizim)
+   durumunda tamamen kapatılır. */
+.mw-add,.mw-list{animation:kwUp .45s ease}
 .mw-form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) auto;gap:10px;align-items:end}
 .mw-form label small{font-weight:400;margin-left:4px}
 .mw-study{margin-top:4px}
@@ -856,7 +864,7 @@ button.kw-chip{cursor:pointer;font-family:inherit}
   .mw-row .icon-btn{grid-column:3;grid-row:1}
 }
 .kw-pop{overscroll-behavior:contain}
-.kw-expl{margin-top:4px;animation:kwUp .4s ease both}
+.kw-expl{margin-top:4px;animation:kwUp .4s ease}
 .kw-ex-row{padding:10px 12px;margin-bottom:8px;border-left:3px solid var(--ink-3);background:var(--bg)}
 .kw-ex-row.ok{border-color:var(--ok)}
 .kw-ex-row.no{border-color:var(--no-ink)}
@@ -875,11 +883,13 @@ button.kw-chip{cursor:pointer;font-family:inherit}
 .mw-learned>summary::before{content:"";width:6px;height:6px;border-right:2px solid var(--ink-3);border-bottom:2px solid var(--ink-3);transform:rotate(-45deg);transition:transform .25s}
 .mw-learned[open]>summary::before{transform:rotate(45deg)}
 .mw-learned>summary:hover{color:var(--ink)}
-.mw-learned-in{animation:kwUp .35s ease both;padding-bottom:6px}
+/* animasyon yok: bu bölüm her yenilemede yeniden çizildiği için giriş animasyonu
+   içeriği saydamlaştırıyordu */
+.mw-learned-in{padding-bottom:6px}
 .mw-learned-in .mw-row:first-child{border-top:0}
 .mw-alldone{margin:8px 0 0}
 /* çalışma merkezi: kapsam seçimi + üç yol (yazarak çalış · 5 şık · çıkmış soru) */
-.mw-hub{margin-top:18px;animation:kwUp .45s ease both}
+.mw-hub{margin-top:18px;animation:kwUp .45s ease}
 .mw-hub-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:2px}
 .mw-hub-bar select{width:auto;min-width:170px;padding:8px 12px}
 .mw-hub-strip{margin-top:14px}
@@ -890,7 +900,6 @@ button.kw-chip{cursor:pointer;font-family:inherit}
 .mw-learned>summary{flex-wrap:wrap}
 .mw-fold-acts{display:inline-flex;gap:6px;margin-left:auto}
 .mw-fold-acts .btn{padding:3px 9px;font-size:12.5px}
-.same .mw-hub{animation:none}
 .kw-weekline{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0}
 .mw-wrong-fold{background:var(--surface);border:1px solid var(--line);padding:0 22px;margin-top:18px}
 .mw-wrong-fold>summary .st-nm b{color:var(--no-ink)}
@@ -922,7 +931,7 @@ button.kw-chip{cursor:pointer;font-family:inherit}
 .kw-on-m{display:block;color:var(--ink-3);font-size:13px;margin-top:2px}
 .mw-syn{display:block;font-size:12.5px;color:var(--ink-3);margin-top:1px}
 /* aynı sayfa yeniden çizilince giriş efekti yok (sayfa "yeniden yükleniyor" gibi görünmesin) */
-.same .kw-today,.same .kw-folds,.same .kw-res,.same .mw-add,.same .mw-list,.same .kw-expl,.same .mw-learned-in,.same .tr-on .kw-trl{animation:none}
+.same .kw-today,.same .kw-folds,.same .kw-res,.same .mw-add,.same .mw-list,.same .mw-hub,.same .kw-expl,.same .mw-learned-in,.same .tr-on .kw-trl{animation:none}
 .kw-hardbtn{margin-top:4px;border:1px solid var(--no-ink);background:var(--no-soft);color:var(--no-ink);padding:3px 9px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;transition:background .2s,color .2s,transform .15s}
 .kw-hardbtn:hover{background:var(--no-ink);color:var(--on-no)}
 .kw-hardbtn:active{transform:translateY(1px)}
